@@ -25,7 +25,9 @@ type InitializeResult struct {
 	ServerInfo   ServerInfo         `json:"serverInfo"`
 }
 
-type ServerCapabilities struct{}
+type ServerCapabilities struct {
+	TextDocumentSync int `json:"textDocumentSync"`
+}
 
 type ServerInfo struct {
 	Name    string `json:"name"`
@@ -39,7 +41,9 @@ func NewInitializeResponse(id int) InitializeResponse {
 			ID:  &id,
 		},
 		Result: InitializeResult{
-			Capabilities: ServerCapabilities{},
+			Capabilities: ServerCapabilities{
+				TextDocumentSync: 1, //Full content updates every time
+			},
 			ServerInfo: ServerInfo{
 				Name:    "css-var-lsp",
 				Version: "0.0.0.dev",

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"css-var-lsp/analysis"
 	"css-var-lsp/lsp"
 	"css-var-lsp/rpc"
 	"encoding/json"
@@ -15,6 +16,9 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(rpc.Split)
+
+	state := analysis.NewState()
+
 	for scanner.Scan() {
 		msg := scanner.Bytes()
 		method, contents, err := rpc.DecodeMessage(msg)
@@ -22,11 +26,11 @@ func main() {
 			logger.Printf("error: %s", err)
 			continue
 		}
-		handleMessage(logger, method, contents)
+		handleMessage(logger, state, method, contents)
 	}
 }
 
-func handleMessage(logger *log.Logger, method string, contents []byte) {
+func handleMessage(logger *log.Logger, state analysis.State, method string, contents []byte) {
 	logger.Printf("Received msg with method: %s", method)
 
 	switch method {
@@ -43,6 +47,13 @@ func handleMessage(logger *log.Logger, method string, contents []byte) {
 		writer := os.Stdout
 		writer.Write([]byte(reply))
 		logger.Print("Sent the init response")
+	case "textDocument/didOpen":
+		var request lsp.DidOpenTextDocumentNotification
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("Couldn't parse the init Request: %s", err)
+		}
+		logger.Printf("Opened: %s %s", request.Params.TextDocument.Uri, request.Params.TextDocument.Text)
+		state.OpenDocument(request.Params.TextDocument.Uri, request.Params.TextDocument.Text)
 	}
 }
 
