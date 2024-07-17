@@ -48,12 +48,23 @@ func handleMessage(logger *log.Logger, state analysis.State, method string, cont
 		writer.Write([]byte(reply))
 		logger.Print("Sent the init response")
 	case "textDocument/didOpen":
-		var request lsp.DidOpenTextDocumentNotification
+		var request lsp.DidOpenNotification
 		if err := json.Unmarshal(contents, &request); err != nil {
-			logger.Printf("Couldn't parse the init Request: %s", err)
+			logger.Printf("didn't open: %s", err)
+			return
 		}
-		logger.Printf("Opened: %s %s", request.Params.TextDocument.Uri, request.Params.TextDocument.Text)
+		logger.Printf("Opened: %s", request.Params.TextDocument.Uri)
 		state.OpenDocument(request.Params.TextDocument.Uri, request.Params.TextDocument.Text)
+	case "textDocument/didChange":
+		var request lsp.DidChangeNotification
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("didChangeNotification: %s", err)
+			return
+		}
+		logger.Printf("Ch: %s", request.Params.TextDocument.URI)
+		for _, change := range request.Params.ContentChanges {
+			state.OpenDocument(request.Params.TextDocument.URI, change.Text)
+		}
 	}
 }
 
