@@ -72,7 +72,7 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			logger.Printf("textDocument/hover: %s", err)
 			return
 		}
-		response, err := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position)
+		response, err := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position, logger)
 		if err == nil {
 			writeResponse(writer, *response)
 		}

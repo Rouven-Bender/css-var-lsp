@@ -2,3 +2,5 @@ Building the functionality to
 - know which word I'm on
 - Check if I have info on that
 - Return the info
+
+go the isolation of the word done but When using it in the editor it doesn't return a thing

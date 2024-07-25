@@ -3,6 +3,7 @@ package analysis
 import (
 	"css-var-lsp/lsp"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -23,9 +24,9 @@ func (s *State) UpdateDocument(uri, text string) {
 	s.Documents[uri] = text
 }
 
-func (s *State) Hover(id int, uri string, position lsp.Position) (*lsp.HoverResponse, error) {
+func (s *State) Hover(id int, uri string, position lsp.Position, log *log.Logger) (*lsp.HoverResponse, error) {
 	document := s.Documents[uri]
-	word, err := selectedWord(document, position)
+	word, err := selectedWord(document, position, log)
 	if err != nil {
 		return nil, err
 	}
@@ -41,51 +42,56 @@ func (s *State) Hover(id int, uri string, position lsp.Position) (*lsp.HoverResp
 	}, nil
 }
 
-func selectedWord(content string, position lsp.Position) (string, error) {
-	var leftover string = content
-	var i int
-	var idx int
-
-	for i = 1; i < position.Line; i++ {
-		idx := strings.Index(leftover, "\n")
-		if idx == -1 {
-			return "", fmt.Errorf("no line break found")
-		}
-		idx = idx + 2
-		if idx > 0 {
-			leftover = leftover[idx:]
-		} else {
-			leftover = leftover[0:]
-		}
-	}
-
-	selectedChar := leftover[position.Character]
-	fmt.Println(string(selectedChar))
+func selectedWord(content string, position lsp.Position, log *log.Logger) (string, error) {
+	selectedChar := content[position.Character]
 	if selectedChar == byte(' ') {
 		return "", fmt.Errorf("cursor on whitespace")
 	}
 
-	for i = 1; position.Character-i > 0; i++ {
-		if leftover[position.Character-i] == byte(' ') {
-			break
+	line := getLine(content, position.Line)
+
+	return isolateWord(line, position.Character), nil
+}
+
+func getLine(content string, line int) string {
+	var cursor int = 0
+	for i := 1; i < line; i++ { // test if the 0 is the problem
+		idx := strings.Index(content[cursor:], "\n")
+		if idx != -1 {
+			cursor += idx + 1
 		} else {
-			continue
+			break
+		}
+	}
+	//log.Print(content[cursor:])
+	return strings.Clone(content[cursor:])
+}
+
+func isolateWord(line string, cursor int) string {
+	if len(line) < cursor {
+		return ""
+	}
+	var startW int = 0
+	var endW int = 0
+
+	for i := 1; cursor-i > 0; i++ {
+		if byte(line[cursor-i]) == byte(' ') {
+			startW = cursor - i
+			break
 		}
 	}
 
-	idx = position.Character - i
-	if idx > 0 {
-		leftover = leftover[position.Character-i:]
-	} else {
-		leftover = leftover[0:]
-	}
-
-	for i = 1; position.Character+i < len(leftover); i++ {
-		if leftover[position.Character+i] == byte(' ') {
+	for i := 1; cursor+i < len(line); i++ {
+		if byte(line[cursor+i]) == byte(' ') {
+			endW = cursor + i
 			break
-		} else {
-			continue
 		}
 	}
-	return leftover[:position.Character+i], nil
+	if endW < startW {
+		endW = len(line)
+	}
+	if startW < 0 {
+		startW = 0
+	}
+	return strings.Trim(line[startW:endW], " ")
 }
