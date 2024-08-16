@@ -5,6 +5,7 @@ import (
 	"css-var-lsp/analysis"
 	"css-var-lsp/lsp"
 	"css-var-lsp/rpc"
+	"css-var-lsp/util"
 	"encoding/json"
 	"io"
 	"log"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	logger := getLogger("/home/kyu/src/css-var-lsp/log.txt")
+	logger := util.GetLogger("/home/kyu/src/css-var-lsp/log.txt")
 	logger.Println("LSP started")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -72,20 +73,13 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 			logger.Printf("textDocument/hover: %s", err)
 			return
 		}
-		response, err := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position, logger)
+		response, err := state.Hover(request.ID, request.Params.TextDocument.URI, request.Params.Position)
 		if err == nil {
 			writeResponse(writer, *response)
 		}
 	}
 }
 
-func getLogger(filename string) *log.Logger {
-	logfile, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0666)
-	if err != nil {
-		panic(err)
-	}
-	return log.New(logfile, "[css-var-lsp]", log.Ldate|log.Ltime|log.Lshortfile)
-}
 func writeResponse(writer io.Writer, msg any) {
 	reply := rpc.EncodeMessage(msg)
 	writer.Write([]byte(reply))

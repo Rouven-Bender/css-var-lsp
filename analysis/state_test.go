@@ -2,8 +2,6 @@ package analysis
 
 import (
 	"css-var-lsp/lsp"
-	"log"
-	"os"
 	"testing"
 )
 
@@ -22,9 +20,16 @@ func TestSelectedWord(t *testing.T) {
 				Character: 3,
 			},
 		},
+		{input: "test\nTest\ntEst",
+			expected: "tEst",
+			position: lsp.Position{
+				Line:      3,
+				Character: 3,
+			},
+		},
 	}
 	for _, test := range expected {
-		selected, err := selectedWord(test.input, test.position, log.New(os.Stdout, "test: ", log.Ltime))
+		selected, err := selectedWord(test.input, test.position)
 		if err != nil {
 			t.Fatal(err)
 		}
