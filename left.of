@@ -1,6 +1,13 @@
+#Next
+follow the tutorial further
+#Next
+Implement the auto complete request
+- want to use trie as the data structure and send a started word and return a list of posible words
+- build trie structure from the keys from the hashmap
+#Done
 Building the functionality to 
 - know which word I'm on
 - Check if I have info on that
 - Return the info
-
-go the isolation of the word done but When using it in the editor it doesn't return a thing
+> this is done through a hashmap in css-vars where I just have the var name and the description as a list.
+Nothing fancy but does trick pretty ok

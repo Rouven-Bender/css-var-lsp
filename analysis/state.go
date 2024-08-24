@@ -1,24 +1,42 @@
 package analysis
 
 import (
+	"css-var-lsp/analysis/trie"
 	"css-var-lsp/lsp"
-	"css-var-lsp/util"
 	"fmt"
 	"log"
 	"strings"
 )
 
-var logger *log.Logger = util.GetLogger("/dev/shm/css-var-analysis.log")
+var rope = trie.NewTrie()
 
 type State struct {
 	//Map of Filenames to Text content
 	Documents map[string]string
+	Logger    *log.Logger
+	Trie      *trie.Trie
 }
 
 func NewState() State {
-	return State{Documents: map[string]string{}}
+	return State{
+		Documents: map[string]string{},
+		Logger:    nil,
+		Trie:      trie.NewTrie(),
+	}
 }
 
+func (s *State) OpenLogger(log *log.Logger) {
+	s.Logger = log
+}
+func (s *State) FillTrie() error {
+	for keyword := range Keywords {
+		s.Logger.Printf("current word beeing added is: %s", keyword)
+		if err := s.Trie.Add(keyword); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 func (s *State) OpenDocument(uri, text string) {
 	s.Documents[uri] = text
 }
@@ -29,12 +47,12 @@ func (s *State) UpdateDocument(uri, text string) {
 
 func (s *State) Hover(id int, uri string, position lsp.Position) (*lsp.HoverResponse, error) {
 	document := s.Documents[uri]
-	logger.Printf("ID: %d; position: line: %d, char: %d", id, position.Line, position.Character)
+	s.Logger.Printf("ID: %d; position: line: %d, char: %d", id, position.Line, position.Character)
 	word, err := selectedWord(document, position)
 	if err != nil {
 		return nil, err
 	}
-	//info := Keywords[word]
+	info := Keywords[word]
 
 	return &lsp.HoverResponse{
 		Response: lsp.Response{
@@ -42,9 +60,35 @@ func (s *State) Hover(id int, uri string, position lsp.Position) (*lsp.HoverResp
 			ID:  &id,
 		},
 		Result: lsp.HoverResult{
-			Contents: word,
+			Contents: info,
 		},
 	}, nil
+}
+
+func (s *State) TextDocumentCompletion(id int, uri string, position lsp.Position) *lsp.CompletionResponse {
+	text := s.Documents[uri]
+	word, err := selectedWord(text, position)
+	if err != nil {
+		s.Logger.Printf("error with text:%s; position: %d, %d: Error: %s", text, position.Line, position.Character, err)
+	}
+	completions, err := s.Trie.StartsWith(word)
+	if err != nil {
+		s.Logger.Printf("Completion request failed: %s", err)
+	}
+	out := []lsp.CompletionItem{}
+	for _, completion := range completions {
+		out = append(out, lsp.CompletionItem{
+			Label:  completion,
+			Detail: Keywords[completion],
+		})
+	}
+	return &lsp.CompletionResponse{
+		Response: lsp.Response{
+			RPC: "",
+			ID:  &id,
+		},
+		Result: out,
+	}
 }
 
 func selectedWord(content string, position lsp.Position) (string, error) {
@@ -54,10 +98,8 @@ func selectedWord(content string, position lsp.Position) (string, error) {
 	}
 
 	line := getLine(content, position.Line)
-	logger.Printf("line:%s\n", line)
 
 	word := isolateWord(line, position.Character)
-	logger.Printf("word:%s", word)
 	return word, nil
 }
 
@@ -72,9 +114,10 @@ func getLine(content string, line int) string {
 		}
 	}
 	end := cursor + strings.Index(content[cursor:], "\n")
-	if end == -1 {
+	if end == -1 || cursor > end {
 		end = len(content)
 	}
+	fmt.Printf("%d %d", cursor, end)
 	return strings.Clone(content[cursor:end])
 }
 
@@ -107,6 +150,5 @@ func isolateWord(line string, cursor int) string {
 	if startW == endW && endW == 0 {
 		return line
 	}
-	logger.Printf("%d %d", startW, endW)
 	return strings.Trim(line[startW:endW], " ")
 }

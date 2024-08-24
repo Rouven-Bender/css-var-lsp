@@ -26,8 +26,9 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
-	TextDocumentSync int  `json:"textDocumentSync"`
-	HoverProvider    bool `json:"hoverProvider"`
+	TextDocumentSync   int            `json:"textDocumentSync"`
+	HoverProvider      bool           `json:"hoverProvider"`
+	CompletionProvider map[string]any `json:"completionProvider"`
 }
 
 type ServerInfo struct {
@@ -43,8 +44,9 @@ func NewInitializeResponse(id int) InitializeResponse {
 		},
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
-				TextDocumentSync: 1, //Full content updates every time
-				HoverProvider:    true,
+				TextDocumentSync:   1, //Full content updates every time
+				HoverProvider:      true,
+				CompletionProvider: map[string]any{}, //TODO: switch to object from spec that includes trigger chars to limit requests
 			},
 			ServerInfo: ServerInfo{
 				Name:    "css-var-lsp",

@@ -7,13 +7,14 @@ import (
 	"css-var-lsp/rpc"
 	"css-var-lsp/util"
 	"encoding/json"
+	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
+var logger = util.GetLogger("/home/kyu/src/css-var-lsp/log.txt")
+
 func main() {
-	logger := util.GetLogger("/home/kyu/src/css-var-lsp/log.txt")
 	logger.Println("LSP started")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -22,6 +23,11 @@ func main() {
 	writer := os.Stdout
 
 	state := analysis.NewState()
+	state.OpenLogger(logger)
+	if err := state.FillTrie(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error filling the trie: %s", err)
+		panic(1)
+	}
 
 	for scanner.Scan() {
 		msg := scanner.Bytes()
@@ -30,11 +36,11 @@ func main() {
 			logger.Printf("error: %s", err)
 			continue
 		}
-		handleMessage(logger, writer, state, method, contents)
+		handleMessage(writer, state, method, contents)
 	}
 }
 
-func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, method string, contents []byte) {
+func handleMessage(writer io.Writer, state analysis.State, method string, contents []byte) {
 	logger.Printf("Received msg with method: %s", method)
 
 	switch method {
@@ -77,6 +83,14 @@ func handleMessage(logger *log.Logger, writer io.Writer, state analysis.State, m
 		if err == nil {
 			writeResponse(writer, *response)
 		}
+	case "textDocument/completion":
+		var request lsp.CompletionRequest
+		if err := json.Unmarshal(contents, &request); err != nil {
+			logger.Printf("textDocument/completion: %s", err)
+			return
+		}
+		response := state.TextDocumentCompletion(request.ID, request.Params.TextDocument.URI, request.Params.Position)
+		writeResponse(writer, *response)
 	}
 }
 

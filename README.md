@@ -3,6 +3,8 @@
 ## Limitations
 This lsp expects the json rpc messages to send the id as an int while the offical spec would allow for
 string or number
+
+Also the lsp only supports lower case letters for Vars currently and no special characters like -
 ## How to build the project
 ``go build .
 ## Connection to neovim
