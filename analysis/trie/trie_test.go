@@ -7,12 +7,18 @@ import (
 
 func TestAdding(t *testing.T) {
 	rope := trie.NewTrie()
-	err := rope.Add("test")
-	if err != nil {
-		t.Error(err)
+	expected := struct {
+		words []string
+	}{
+		words: []string{"test", "--dwc"},
 	}
-	if !rope.Contains("test") {
-		t.Errorf("trie does not contain word that was added")
+	for _, word := range expected.words {
+		if err := rope.Add(word); err != nil {
+			t.Error(err)
+		}
+		if !rope.Contains(word) {
+			t.Errorf("trie does not contain word that was added: %s", word)
+		}
 	}
 }
 
@@ -21,7 +27,7 @@ func TestFindwords(t *testing.T) {
 	expected := struct {
 		words []string
 	}{
-		words: []string{"test", "testing", "testcase"},
+		words: []string{"test", "testing", "testcase", "--dwc"},
 	}
 	for _, word := range expected.words {
 		if err := rope.Add(word); err != nil {

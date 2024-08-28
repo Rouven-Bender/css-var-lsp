@@ -12,7 +12,7 @@ const (
 	MEDIUM        uint8 = 4
 	COMMON        uint8 = 2
 	UBIQUITOUS    uint8 = 0
-	numberOfChars int   = 26
+	numberOfChars int   = 27
 )
 
 type Node struct {
@@ -69,7 +69,12 @@ func (t *Trie) Add(word string) error {
 	node := &t.Head
 	for i := 0; i < len(chars); i++ {
 		letter := byte(chars[i])
-		idx := int(letter - byte(rune('a')))
+		var idx int
+		if letter == byte(rune('-')) {
+			idx = 26
+		} else {
+			idx = int(letter - byte(rune('a')))
+		}
 		if 0 <= idx && idx < numberOfChars {
 			if node.LetterArms[idx] != nil {
 				node = node.LetterArms[idx]
@@ -96,7 +101,13 @@ func (t *Trie) Contains(word string) bool {
 	chars := []rune(word)
 	for i := 0; i < len(chars); i++ {
 		letter := byte(chars[i])
-		idx := int(letter - byte(rune('a')))
+		var idx int
+		if letter == byte(rune('-')) {
+			idx = 26
+		} else {
+			idx = int(letter - byte(rune('a')))
+		}
+
 		if 0 <= idx && idx < numberOfChars {
 			if node.LetterArms[idx] != nil {
 				node = node.LetterArms[idx]
@@ -122,7 +133,13 @@ func (t *Trie) StartsWith(start string) ([]string, error) {
 
 	for i := 0; i < len(chars); i++ {
 		letter := byte(chars[i])
-		idx := int(letter - byte(rune('a')))
+		var idx int
+		if letter == byte(rune('-')) {
+			idx = 26
+		} else {
+			idx = int(letter - byte(rune('a')))
+		}
+
 		if 0 <= idx && idx < numberOfChars {
 			if node.LetterArms[idx] != nil {
 				node = node.LetterArms[idx]

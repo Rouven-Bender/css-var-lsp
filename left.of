@@ -1,6 +1,6 @@
 #Next
 follow the tutorial further
-#Next
+#Done
 Implement the auto complete request
 - want to use trie as the data structure and send a started word and return a list of posible words
 - build trie structure from the keys from the hashmap
