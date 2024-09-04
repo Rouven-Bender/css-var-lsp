@@ -44,6 +44,8 @@ func handleMessage(writer io.Writer, state analysis.State, method string, conten
 	logger.Printf("Received msg with method: %s", method)
 
 	switch method {
+	case "shutdown":
+		os.Exit(0)
 	case "initialize":
 		var request lsp.InitializeRequest
 		if err := json.Unmarshal(contents, &request); err != nil {

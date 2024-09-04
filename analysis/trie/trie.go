@@ -147,7 +147,7 @@ func (t *Trie) StartsWith(start string) ([]string, error) {
 				return out, nil
 			}
 		} else {
-			return nil, fmt.Errorf("letter out of range")
+			return nil, fmt.Errorf("letter out of range %c", rune(byte(idx)+byte('a')))
 		}
 	}
 

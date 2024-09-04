@@ -27,6 +27,13 @@ func TestSelectedWord(t *testing.T) {
 				Character: 3,
 			},
 		},
+		{input: "test\nTest\ntEst\nvar(--test-var)",
+			expected: "--test-var",
+			position: lsp.Position{
+				Line:      4,
+				Character: 5,
+			},
+		},
 	}
 	for _, test := range expected {
 		selected, err := selectedWord(test.input, test.position)

@@ -26,14 +26,18 @@ type InitializeResult struct {
 }
 
 type ServerCapabilities struct {
-	TextDocumentSync   int            `json:"textDocumentSync"`
-	HoverProvider      bool           `json:"hoverProvider"`
-	CompletionProvider map[string]any `json:"completionProvider"`
+	TextDocumentSync   int               `json:"textDocumentSync"`
+	HoverProvider      bool              `json:"hoverProvider"`
+	CompletionProvider CompletionOptions `json:"completionProvider"`
 }
 
 type ServerInfo struct {
 	Name    string `json:"name"`
 	Version string `json:"version"`
+}
+
+type CompletionOptions struct {
+	TriggerCharacters []string `json:"triggerCharacters"`
 }
 
 func NewInitializeResponse(id int) InitializeResponse {
@@ -44,9 +48,11 @@ func NewInitializeResponse(id int) InitializeResponse {
 		},
 		Result: InitializeResult{
 			Capabilities: ServerCapabilities{
-				TextDocumentSync:   1, //Full content updates every time
-				HoverProvider:      true,
-				CompletionProvider: map[string]any{}, //TODO: switch to object from spec that includes trigger chars to limit requests
+				TextDocumentSync: 1, //Full content updates every time
+				HoverProvider:    true,
+				CompletionProvider: CompletionOptions{
+					TriggerCharacters: []string{"-"},
+				},
 			},
 			ServerInfo: ServerInfo{
 				Name:    "css-var-lsp",

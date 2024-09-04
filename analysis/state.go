@@ -129,14 +129,14 @@ func isolateWord(line string, cursor int) string {
 	var endW int = 0
 
 	for i := 1; cursor-i > 0; i++ {
-		if byte(line[cursor-i]) == byte(' ') {
+		if byte(line[cursor-i]) == byte(' ') || byte(line[cursor-i]) == byte('(') {
 			startW = cursor - i
 			break
 		}
 	}
 
 	for i := 1; cursor+i < len(line); i++ {
-		if byte(line[cursor+i]) == byte(' ') {
+		if byte(line[cursor+i]) == byte(' ') || byte(line[cursor+i]) == byte(')') {
 			endW = cursor + i
 			break
 		}
@@ -150,5 +150,8 @@ func isolateWord(line string, cursor int) string {
 	if startW == endW && endW == 0 {
 		return line
 	}
-	return strings.Trim(line[startW:endW], " ")
+	out := strings.Trim(line[startW:endW], " ")
+	out = strings.Trim(out, "(")
+	out = strings.Trim(out, ")")
+	return out
 }
