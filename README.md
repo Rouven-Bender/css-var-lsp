@@ -4,7 +4,9 @@
 This lsp expects the json rpc messages to send the id as an int while the offical spec would allow for
 string or number
 
-Also the lsp only supports lower case letters for Vars currently and no special characters like -
+The lsp only supports lower case letters for Vars currently and only the '-' as a special character
+
+before the lsp can be used nicely you should open the analysis/css-vars.go file and fill it with the css vars you would like to have in your editor
 ## How to build the project
 ``go build .
 ## Connection to neovim
