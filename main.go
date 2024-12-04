@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-var logger = util.GetLogger("/home/kyu/src/css-var-lsp/log.txt")
+var logger = util.GetLogger(os.TempDir() + "css-var-lsp.log")
 
 func main() {
 	logger.Println("LSP started")
